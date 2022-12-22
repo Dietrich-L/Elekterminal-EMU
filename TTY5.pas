@@ -6,7 +6,7 @@ uses
   {$IFDEF UNIX}{$IFDEF UseCThreads}
   cthreads,
   {$ENDIF}{$ENDIF}
-  Classes, SysUtils, laz_synapse, CustApp , Synaser,Crt
+  Classes, SysUtils, Crt , laz_synapse, CustApp , Synaser
   { you can add units after this };
 
 type
@@ -86,7 +86,7 @@ type
 
     case AltKey of
 
-      #23:  { alt-I }
+      #23:                                                   { alt-I }
       begin
         if WhereX > 1 then Writeln;
         writeln;
@@ -117,11 +117,9 @@ type
         Write ('word length = ', intToStr(TtyLength), '       ');
         Writeln ('stop bits = ', ord(TtyStop)+1);
         writeln;
-        { Writeln (' press ALT-DEL for Boot ');
-        writeln;  }
       end;
 
-      #35:  { alt-H }
+      #35:                                                   { alt-H }
       begin
         if WhereX > 1 then Writeln;
         Writeln  ('TTY:  ', ttyPort,'   Version ',Version);
@@ -136,7 +134,7 @@ type
         Writeln;
       end;
 
-      #32:  { alt-D }
+      #32:                                                  { alt-D }
       begin
         DoDebug := not DoDebug;
         if WhereX > 1 then Writeln;
@@ -146,25 +144,24 @@ type
           Writeln ('TTY:  debug = off');
       end;
 
-      #45:  { alt-X }
+      #45:                                                  { alt-X }
       begin
         if WhereX > 1 then Writeln;
         Writeln ('TTY:  exit');
         l := false;
       end;
 
-      #46:  { alt-C }
+      #46:                                                  { alt-C }
       begin
         if WhereX > 1 then Writeln;
         Writeln ('actual COM-Port: ',ttyport,':');
         Write ('COM-Port: Nr = ');
         Readln (ParsInput);
-        // Writeln (parsinput);
         ttyport := 'COM' + ParsInput;
         Writeln ('New COM-Port: ',ttyport,':');
       end;
 
-      #48:   { alt-B }
+      #48:                                                  { alt-B }
       begin
         if WhereX > 1 then Writeln;
         Write ('TTY:  baudrate = ');
@@ -225,7 +222,7 @@ begin
     Writeln;
     TtyGetPars (#35); 				{ display help }
 
-    ser.Connect(ttyPort); //ComPort
+    ser.Connect(ttyPort);                       //ComPort
     Sleep(100);
     ser.config(ttyBaud, 8, 'N', SB1, False, False);
     writeln;
@@ -238,49 +235,50 @@ begin
 
     repeat
 
-    if ser.CanReadEx(500) then
+    if ser.CanReadEx(0) then
       begin
-        ChCom := CHR(ser.recvByte (10));
+        ChCom := CHR(ser.recvByte (0));
+
          if not DoDebug then			{ terminal mode }
 
           case ChCOM of
-          ' '..'~':              { all printable characters }
+          ' '..'~':                             { all printable characters }
           begin
             write (ChCom);
           end ;
 
-          #13:			 { <CR> }
+          #13:			                { <CR> }
             begin
                ClrEol ;
                GotoXY (1, WhereY)  ;
             end  ;
-          #12:			   { <FF> }
+          #12:			                { <FF> }
             begin
               ClrScr  ;
               GotoXY (1, 1) ;
             end ;
-          #10:	                  { <LF> }
+          #10:	                                { <LF> }
             begin
               if (WhereY <= 16) then
                  GotoXY (WhereX, WhereY + 1)
               else
                  Writeln;
             end ;
-          #26:                     { <SUB> }
+          #26:                                  { <SUB> }
             begin
               gotoxy (1, WhereY) ;
               clreol;
             end;
-          #28:	                        { <FS> }
+          #28:	                                { <FS> }
             Begin
             GotoXY (1,1) ;
             end ;
-          #11:	                { <VT> }
+          #11:	                                { <VT> }
              begin
              if (WhereY > 1) then
                GotoXY (WhereX, WhereY - 1) ;
              end ;
-          #29:                           { <GS> }
+          #29:                                  { <GS> }
             begin
               gotoxy (1, WhereY) ;
             end;
@@ -291,10 +289,9 @@ begin
               else if (WhereY > 1) then
               GotoXY ( 64, WhereY - 1) ;
               end  ;
-          #09:		{ <HT> (tab) }
+          #09:		                        { <HT> (tab) }
             begin
   	      if (WhereX < 64) then
-                // GotoXY (trunc((WhereX + 7)/8)*8+1, WhereY)
                 Gotoxy ( WhereX+1, WhereY)
             else
               GotoXY (1 , WhereY + 1) ;
@@ -313,16 +310,15 @@ begin
                begin
                     ser.sendByte (byte(ChKey))  ;
                end ;
-               #13:  ser.sendbyte ($0D) ;  // CR&LF
+               #13:  ser.sendbyte ($0D) ;              // CR&LF
                #08:
                     Begin
                            ser.purge;
                            ser.Sendbyte($7F);
                     end;
-               #0:                              // ALT-x
+               #0:                                     // ALT-x
                begin
                     ChKey := ReadKey;
-                    // write (ChKey);
                     case ChKey of
                     'K':   ser.sendByte ($08)  ;
                     'H':   ser.sendByte ($0B)  ;
@@ -338,17 +334,17 @@ begin
                            ser.purge;
                            ser.Sendbyte($7F);
                     end;
-                    #23,#32,#35,#45,#48:   TtyGetPars (ChKey);
-                    #46:
+                    #23,#32,#35,#45:   TtyGetPars (ChKey);
+                    #46, #48:
                     Begin
                       TtyGetPars (ChKey);
                       ser.closeSocket;
                       sleep(100);
-                      ser.Connect(ttyPort); // set new ComPort
+                      ser.Connect(ttyPort);           // set new ComPort
                       Sleep(100);
                       ser.config(ttyBaud, 8, 'N', SB1, False, False);
                       writeln;
-                      Write('Device: ' + ser.Device + '   Status: ' + ser.LastErrorDesc); // +' '+
+                      Write('Device: ' + ser.Device + '   Status: ' + ser.LastErrorDesc);
 
                       writeln;
                     end;
@@ -357,7 +353,6 @@ begin
                end ;
           end;
         end   ;
-      ser.config(TtyBaud, 8, 'N', SB1, False, False);
 
     until l=False;
 
