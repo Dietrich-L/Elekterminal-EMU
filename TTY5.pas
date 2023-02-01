@@ -190,7 +190,7 @@ var
   ChCom, ChKey : char;
 
 begin
-     Writeln('  TTY9600 ASCII Terminal  Version '+ Version);
+     Writeln('  ELEKTERMINAL Emulator  Version '+ Version);
 
   ser:=TBlockSerial.Create;
 
@@ -214,7 +214,7 @@ begin
     l:= true;
     DoDebug := false;
     TtyPort := 'COM3';
-    ttyBaud := 9600;
+    ttyBaud := 38400;
     ttylength := 8 ;
     ttyparity := 'N' ;
     ttystop := SB1 ;
